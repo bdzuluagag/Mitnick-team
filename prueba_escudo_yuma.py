@@ -37,7 +37,10 @@ hash_cadena_auditoria = "0" * 64
 
 def cargar_bus_eventos_memoria():
     """Precarga 03_Datos/eventos_app.csv en RAM (simula Streaming Bus en < 1 ms)."""
-    ruta_ev = Path(__file__).resolve().parent / "03_Datos" / "eventos_app.csv"
+    raiz = Path(__file__).resolve().parent
+    ruta_ev = raiz / "Caso_de_estudio_Yuma_Pay" / "03_Datos" / "eventos_app.csv"
+    if not ruta_ev.exists():
+        ruta_ev = raiz / "03_Datos" / "eventos_app.csv"
     if not ruta_ev.exists():
         return 0
     total = 0

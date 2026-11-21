@@ -1,0 +1,52 @@
+﻿archivo,campo,tipo,descripcion,ejemplo
+transacciones.csv,id_transaccion,texto,"Identificador único de la operación, en orden cronológico",T00012345
+transacciones.csv,fecha_hora,fecha y hora,Momento de la operación (hora de Colombia),2026-07-15 14:32:10
+transacciones.csv,id_cliente,texto,Cliente que origina la operación; cruza con clientes.csv,C01234
+transacciones.csv,tipo_operacion,categoría,"transferencia_inmediata, pago_qr, retiro_corresponsal, retiro_cajero, pago_servicios, recarga_celular o compra_tarjeta_virtual",transferencia_inmediata
+transacciones.csv,canal,categoría,"app, corresponsal o cajero",app
+transacciones.csv,monto_cop,entero,Valor de la operación en pesos colombianos,185000
+transacciones.csv,saldo_antes_cop,entero,Saldo disponible del cliente antes de la operación,420300
+transacciones.csv,id_destino,texto,"Destino del dinero: C (cuenta Yuma), EXT (otra entidad), COM (comercio), COR (corresponsal), CAJ (cajero), SRV (servicio), OPE (operador)",EXT48213
+transacciones.csv,tipo_destino,categoría,"cuenta_yuma, otra_entidad, comercio, corresponsal, cajero, servicio u operador",otra_entidad
+transacciones.csv,destino_nuevo,0/1,"1 si es la primera operación del cliente hacia ese destino en 180 días (calculado sobre el histórico completo, no solo la muestra)",1
+transacciones.csv,id_dispositivo,texto,Dispositivo desde el que se autorizó la operación,D3FA91C0
+transacciones.csv,dispositivo_nuevo,0/1,1 si el dispositivo se registró en las últimas 24 horas,0
+transacciones.csv,cambio_clave_24h,0/1,1 si hubo cambio de clave en las 24 horas anteriores,0
+transacciones.csv,cambio_sim_48h,0/1,1 si el operador reportó cambio de SIM en las 48 horas anteriores,0
+transacciones.csv,departamento_ip,texto,Departamento estimado a partir de la dirección IP,Antioquia
+transacciones.csv,ip_departamento_distinto,0/1,1 si departamento_ip difiere del departamento habitual del cliente,0
+transacciones.csv,antiguedad_cuenta_dias,entero,Días entre la vinculación del cliente y la operación,812
+transacciones.csv,es_fraude,0/1,Etiqueta: 1 si la operación fue fraude confirmado,0
+transacciones.csv,modalidad_fraude,categoría,"toma_de_cuenta, sim_swapping, ingenieria_social, engano_qr o cuenta_mula; vacío si no es fraude",toma_de_cuenta
+clientes.csv,id_cliente,texto,Identificador anónimo del cliente,C01234
+clientes.csv,tipo_cliente,categoría,persona o microcomerciante,persona
+clientes.csv,departamento,texto,Departamento habitual del cliente,Valle del Cauca
+clientes.csv,rango_edad,categoría,"18-25, 26-35, 36-45, 46-60 o 60+",26-35
+clientes.csv,fecha_vinculacion,fecha,Fecha de apertura de la cuenta,2023-03-18
+clientes.csv,cuenta_mula_confirmada,0/1,Etiqueta: 1 si la cuenta fue confirmada como cuenta mula,0
+clientes.csv,canal_vinculacion,categoría,"app, corresponsal o referido",app
+eventos_app.csv,id_evento,texto,"Identificador único del evento, en orden cronológico",E00001234
+eventos_app.csv,fecha_hora,fecha y hora,Momento del evento,2026-07-15 14:28:41
+eventos_app.csv,id_cliente,texto,Cliente al que pertenece la sesión,C01234
+eventos_app.csv,tipo_evento,categoría,"inicio_sesion, registro_dispositivo, cambio_clave o cambio_sim_detectado",inicio_sesion
+eventos_app.csv,id_dispositivo,texto,Dispositivo que generó el evento,D3FA91C0
+eventos_app.csv,sistema_operativo,categoría,Android o iOS,Android
+eventos_app.csv,departamento_ip,texto,Departamento estimado a partir de la dirección IP,Antioquia
+eventos_app.csv,resultado,categoría,exitoso o fallido,exitoso
+alertas.csv,id_alerta,texto,Identificador único de la alerta,A0001234
+alertas.csv,id_transaccion,texto,Operación que activó la alerta; cruza con transacciones.csv,T00012345
+alertas.csv,id_cliente,texto,Cliente de la operación alertada,C01234
+alertas.csv,fecha_hora_alerta,fecha y hora,Momento en que el lote de 15 minutos generó la alerta,2026-07-15 14:47:25
+alertas.csv,reglas_activadas,texto,"Reglas que se activaron, separadas por |; ver reglas_vigentes.csv",R002|R005
+alertas.csv,severidad,categoría,"La mayor severidad entre las reglas activadas: baja, media o alta",alta
+alertas.csv,estado,categoría,revisada o sin_revisar,revisada
+alertas.csv,minutos_hasta_revision,entero,Minutos entre la alerta y la revisión del analista; vacío si no se revisó,212
+alertas.csv,decision_analista,categoría,fraude_confirmado o falso_positivo; vacío si no se revisó,falso_positivo
+alertas.csv,accion,categoría,"ninguna, bloqueo_preventivo_levantado o bloqueo_de_cuenta_y_reporte; vacío si no se revisó",ninguna
+reglas_vigentes.csv,id_regla,texto,Identificador de la regla,R005
+reglas_vigentes.csv,nombre,texto,Nombre corto de la regla,Vaciado de saldo a destino nuevo
+reglas_vigentes.csv,descripcion,texto,Qué situación busca la regla,—
+reglas_vigentes.csv,condicion,texto,Condición exacta; salida = transferencia o retiro,—
+reglas_vigentes.csv,severidad,categoría,"baja, media o alta",alta
+reglas_vigentes.csv,modalidad_objetivo,texto,Modalidades de fraude que la regla intenta detectar,toma_de_cuenta
+reglas_vigentes.csv,ultima_modificacion,fecha,Fecha del último ajuste manual de la regla,2026-01-20

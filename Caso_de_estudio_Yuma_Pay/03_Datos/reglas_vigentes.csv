@@ -1,0 +1,13 @@
+﻿id_regla,nombre,descripcion,condicion,severidad,modalidad_objetivo,ultima_modificacion
+R001,Transferencia de monto alto,Transferencia inmediata por un valor igual o superior al tope,tipo_operacion = transferencia_inmediata Y monto_cop >= 1.000.000,media,toma_de_cuenta; sim_swapping,2025-11-18
+R002,Dispositivo nuevo,Salida de dinero desde un dispositivo registrado recientemente,salida Y dispositivo_nuevo = 1 Y monto_cop >= 150.000,alta,toma_de_cuenta; sim_swapping,2026-02-03
+R003,Operación de madrugada,Salida de dinero entre las 00:00 y las 04:59,salida Y hora <= 4 Y monto_cop >= 150.000,media,toma_de_cuenta,2025-08-27
+R004,Velocidad de salidas,Cuatro o más salidas del mismo cliente en 60 minutos,salida Y n_salidas_60min >= 4,media,toma_de_cuenta; cuenta_mula,2026-03-11
+R005,Vaciado de saldo a destino nuevo,Transferencia a un destino nuevo que consume casi todo el saldo,transferencia Y destino_nuevo = 1 Y monto_cop >= 90 % de saldo_antes_cop Y monto_cop >= 100.000,alta,toma_de_cuenta; ingenieria_social,2026-01-20
+R006,Cambio de clave reciente,Transferencia en las 24 horas siguientes a un cambio de clave,transferencia Y cambio_clave_24h = 1 Y monto_cop >= 200.000,alta,toma_de_cuenta,2025-10-06
+R007,Cambio de SIM reciente,Salida de dinero en las 48 horas siguientes a un cambio de SIM,salida Y cambio_sim_48h = 1 Y monto_cop >= 200.000,alta,sim_swapping,2026-04-14
+R008,Cuenta reciente con retiros,Retiro en efectivo desde una cuenta con menos de 15 días,retiro Y antiguedad_cuenta_dias < 15 Y monto_cop >= 300.000,media,cuenta_mula,2026-02-25
+R009,Ubicación atípica,Salida de dinero desde un departamento distinto al habitual,salida Y ip_departamento_distinto = 1 Y monto_cop >= 250.000,baja,toma_de_cuenta,2025-07-09
+R010,Acumulado diario,Suma de salidas del cliente en el día por encima del tope,salida Y acumulado_dia_cop >= 1.500.000,media,toma_de_cuenta; cuenta_mula,2025-12-02
+R011,Pago QR de monto alto,Pago con QR por un valor igual o superior al tope,tipo_operacion = pago_qr Y monto_cop >= 200.000,baja,engano_qr,2025-09-15
+R012,Retiro de monto alto,Retiro en corresponsal o cajero por encima del tope,retiro Y monto_cop >= 600.000,media,cuenta_mula; sim_swapping,2025-11-18

@@ -1,0 +1,191 @@
+openapi: 3.0.3
+info:
+  title: Sandbox antifraude de Yuma Pay
+  version: 1.0.0
+  description: >
+    API simulada para el reto "Escudo Yuma". Yuma Pay es una organización ficticia
+    creada para una hackatón; todos los datos son sintéticos. La API entrega
+    transacciones sin la etiqueta de fraude, recibe la decisión del sistema del
+    equipo y calcula los indicadores contra la etiqueta real.
+servers:
+  - url: http://localhost:8080
+    description: Servidor local (python mock_api.py)
+paths:
+  /v1/salud:
+    get:
+      summary: Verifica que el sandbox está arriba
+      responses:
+        "200":
+          description: Estado del servicio
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  estado: { type: string, example: ok }
+                  transacciones: { type: integer, example: 120972 }
+  /v1/transacciones/siguiente:
+    get:
+      summary: Entrega las siguientes transacciones en orden cronológico
+      description: Avanza un cursor interno. Las transacciones no incluyen es_fraude ni modalidad_fraude.
+      parameters:
+        - name: cantidad
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 500, default: 1 }
+      responses:
+        "200":
+          description: Lote de transacciones
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  transacciones:
+                    type: array
+                    items: { $ref: "#/components/schemas/Transaccion" }
+                  restantes: { type: integer }
+        "400": { $ref: "#/components/responses/Error" }
+  /v1/clientes/{id_cliente}/eventos:
+    get:
+      summary: Eventos de sesión y dispositivo de un cliente
+      parameters:
+        - name: id_cliente
+          in: path
+          required: true
+          schema: { type: string, example: C01234 }
+        - name: hasta
+          in: query
+          description: Solo eventos hasta esta fecha y hora (AAAA-MM-DD HH:MM:SS), para no usar información del futuro
+          schema: { type: string, example: "2026-07-15 14:32:10" }
+      responses:
+        "200":
+          description: Eventos del cliente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id_cliente: { type: string }
+                  eventos:
+                    type: array
+                    items: { $ref: "#/components/schemas/Evento" }
+  /v1/decisiones:
+    post:
+      summary: Registra la decisión del sistema antifraude
+      description: Acepta una decisión o una lista de decisiones.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - $ref: "#/components/schemas/Decision"
+                - type: array
+                  items: { $ref: "#/components/schemas/Decision" }
+      responses:
+        "201":
+          description: Decisión recibida
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id_transaccion: { type: string }
+                  recibida: { type: boolean }
+                  latencia_ms:
+                    type: number
+                    nullable: true
+                    description: Tiempo desde la entrega de la transacción hasta la decisión
+        "400": { $ref: "#/components/responses/Error" }
+  /v1/metricas:
+    get:
+      summary: Indicadores de las decisiones registradas frente a la etiqueta real
+      responses:
+        "200":
+          description: Indicadores
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Metricas" }
+  /v1/reiniciar:
+    post:
+      summary: Reinicia el cursor y borra las decisiones
+      responses:
+        "200":
+          description: Reiniciado
+components:
+  responses:
+    Error:
+      description: Solicitud inválida
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error: { type: string }
+  schemas:
+    Transaccion:
+      type: object
+      properties:
+        id_transaccion: { type: string, example: T00012345 }
+        fecha_hora: { type: string, example: "2026-07-15 14:32:10" }
+        id_cliente: { type: string, example: C01234 }
+        tipo_operacion:
+          type: string
+          enum: [transferencia_inmediata, pago_qr, retiro_corresponsal, retiro_cajero, pago_servicios, recarga_celular, compra_tarjeta_virtual]
+        canal: { type: string, enum: [app, corresponsal, cajero] }
+        monto_cop: { type: integer, example: 185000 }
+        saldo_antes_cop: { type: integer, example: 420300 }
+        id_destino: { type: string, example: EXT48213 }
+        tipo_destino: { type: string, enum: [cuenta_yuma, otra_entidad, comercio, corresponsal, cajero, servicio, operador] }
+        destino_nuevo: { type: integer, enum: [0, 1] }
+        id_dispositivo: { type: string, example: D3FA91C0 }
+        dispositivo_nuevo: { type: integer, enum: [0, 1] }
+        cambio_clave_24h: { type: integer, enum: [0, 1] }
+        cambio_sim_48h: { type: integer, enum: [0, 1] }
+        departamento_ip: { type: string, example: Antioquia }
+        ip_departamento_distinto: { type: integer, enum: [0, 1] }
+        antiguedad_cuenta_dias: { type: integer, example: 812 }
+    Evento:
+      type: object
+      properties:
+        id_evento: { type: string }
+        fecha_hora: { type: string }
+        id_cliente: { type: string }
+        tipo_evento: { type: string, enum: [inicio_sesion, registro_dispositivo, cambio_clave, cambio_sim_detectado] }
+        id_dispositivo: { type: string }
+        sistema_operativo: { type: string, enum: [Android, iOS] }
+        departamento_ip: { type: string }
+        resultado: { type: string, enum: [exitoso, fallido] }
+    Decision:
+      type: object
+      required: [id_transaccion, decision]
+      properties:
+        id_transaccion: { type: string, example: T00012345 }
+        decision:
+          type: string
+          enum: [aprobar, desafiar, retener, rechazar]
+          description: desafiar pide autenticación reforzada; retener y rechazar impiden que el dinero salga
+        puntaje:
+          type: number
+          minimum: 0
+          maximum: 1
+          description: Probabilidad de fraude estimada
+        razones:
+          type: array
+          items: { type: string }
+          description: Explicación legible de la decisión
+          example: ["dispositivo registrado hace 4 minutos", "destino nuevo", "monto igual al 96 % del saldo"]
+    Metricas:
+      type: object
+      properties:
+        transacciones_decididas: { type: integer }
+        transacciones_pendientes: { type: integer }
+        fraudes_en_lo_decidido: { type: integer }
+        fraude_detectado_pct: { type: number, nullable: true }
+        monto_fraude_protegido_pct: { type: number, nullable: true }
+        falsos_positivos_pct: { type: number, nullable: true }
+        clientes_legitimos_bloqueados_pct: { type: number, nullable: true }
+        desafios: { type: integer }
+        latencia_ms_p50: { type: number, nullable: true }
+        latencia_ms_p99: { type: number, nullable: true }
+        nota: { type: string }

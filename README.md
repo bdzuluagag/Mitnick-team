@@ -1,46 +1,44 @@
 # Escudo Yuma 360 v2.0
 
 Motor experimental de evaluación antifraude en Python. `prueba_escudo_yuma.py`
-conserva el código suministrado, normalizando los saltos de línea a LF.
+usa las reglas del código suministrado. Se adaptó la búsqueda del CSV de eventos
+a la carpeta del caso de estudio; se normalizaron los saltos de línea a LF.
 Solo requiere Python 3.9 o posterior y su biblioteca estándar.
 
-## Ejecutar la demo
+## Ejecutar con los datos del caso de estudio
 
-Desde CMD en Windows:
+El paquete aportado está en `Caso_de_estudio_Yuma_Pay`. Contiene 120.972
+transacciones y 48.281 eventos de sesión. Su README aclara que son datos
+ficticios de la hackatón. Esta ejecución usa esos CSV, sin generar transacciones.
 
-```cmd
-git clone https://github.com/bdzuluagag/Mitnick-team.git
-cd Mitnick-team
-py demo_local.py 2000
-```
+Desde la raíz del repositorio, abrir dos terminales. En CMD de Windows:
 
-Desde Terminal en macOS/Linux:
-
-```sh
-python3 demo_local.py 2000
-```
-
-La demo levanta un servidor HTTP en un puerto local libre, ejecuta el motor
-original en un proceso separado y cierra el servidor al terminar. Usa datos
-sintéticos de cinco escenarios: operación normal, cambio de SIM, cuenta
-reciente que vacía saldo, múltiples señales de toma de cuenta y pago QR nuevo.
-Las métricas son conteos de decisiones; no representan precisión con datos reales.
-
-## Usar el sandbox original
-
-Iniciar el sandbox externo en `http://127.0.0.1:8080` y ejecutar:
+Primera terminal (mantener abierta):
 
 ```cmd
-py prueba_escudo_yuma.py 2000
+py Caso_de_estudio_Yuma_Pay/04_Sandbox_API/mock_api.py
 ```
 
-En macOS/Linux usar `python3` en lugar de `py`. El sandbox debe implementar
-`POST /v1/reiniciar`, `GET /v1/transacciones/siguiente?cantidad=N`,
-`POST /v1/decisiones` y `GET /v1/metricas`. El script reinicia ese sandbox.
-El servicio y sus datos originales no están incluidos. Opcionalmente, colocar
-`03_Datos/eventos_app.csv` con columnas `fecha_hora`, `id_cliente`,
-`tipo_evento`, `resultado`, `id_dispositivo`, ordenado cronológicamente.
-Sin ese CSV, la demo carga cero eventos de sesión.
+Segunda terminal:
+
+```cmd
+py prueba_escudo_yuma.py 120972
+```
+
+En macOS/Linux reemplazar `py` por `python3`. Para una prueba parcial,
+reemplazar `120972` por la cantidad deseada. Cada ejecución reinicia el sandbox.
+El motor carga automáticamente los eventos desde la carpeta del caso y,
+si no existe allí el archivo, busca en `03_Datos/eventos_app.csv`.
+
+El sandbox oculta las etiquetas de fraude al motor y las usa para calcular
+las métricas. Detectado significa desafiar, retener o rechazar una operación
+fraudulenta. Falso positivo significa retener o rechazar una operación legítima;
+los desafíos a operaciones legítimas no cuentan como falsos positivos en esa API.
+La latencia se mide desde la entrega del lote hasta la recepción de las decisiones.
+
+`demo_local.py` es la demo artificial inicial, conservada como referencia; no
+se usa en la ejecución del caso de estudio. Los generadores de `00_Organizadores`
+se excluyen de Git según la indicación del paquete de no compartirlos con equipos.
 
 ## Salida y alcance
 
