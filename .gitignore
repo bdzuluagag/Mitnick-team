@@ -1,0 +1,5 @@
+__pycache__/
+*.py[cod]
+.venv/
+.DS_Store
+auditoria_inmutable_sha256.jsonl
