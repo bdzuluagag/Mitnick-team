@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Mitnick Sentinel 360™ — Acceso SOC & Consola Antifraude</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #0b1120; color: #e2e8f0; margin: 0; padding: 18px; min-height: 100vh; }
+        .container { max-width: 1480px; margin: 0 auto; }
+
+        .login-wrapper { max-width: 430px; margin: 70px auto; background: #0f172a; border: 1px solid #334155; border-radius: 18px; padding: 32px; box-shadow: 0 20px 45px rgba(0,0,0,0.5); }
+        .login-logo { text-align: center; margin-bottom: 24px; }
+        .login-logo h1 { margin: 8px 0 4px 0; font-size: 22px; color: #38bdf8; }
+        .login-logo p { margin: 0; font-size: 12px; color: #94a3b8; }
+        .soc-field { margin-bottom: 14px; }
+        .soc-field label { display: block; font-size: 12px; font-weight: bold; color: #cbd5e1; margin-bottom: 5px; }
+        .soc-input { width: 100%; padding: 11px 12px; background: #1e293b; border: 1px solid #475569; border-radius: 9px; color: white; font-size: 13px; }
+        .btn-login-soc { width: 100%; padding: 12px; background: #0284c7; color: white; border: none; border-radius: 9px; font-weight: bold; font-size: 14px; cursor: pointer; margin-top: 8px; }
+        .btn-login-soc:hover { background: #0369a1; }
+
+        .header { background: linear-gradient(90deg, #0f172a, #1e293b); border: 1px solid #334155; padding: 16px 24px; border-radius: 14px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
+        .brand-title { font-size: 20px; font-weight: 800; color: #38bdf8; margin: 0; }
+        .brand-sub { font-size: 12px; color: #94a3b8; margin-top: 2px; }
+        .header-btns { display: flex; gap: 10px; align-items: center; }
+        .btn-top { background: #1e293b; color: #e2e8f0; border: 1px solid #475569; padding: 8px 14px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: bold; }
+        .btn-top:hover { background: #334155; }
+        .pill-live { background: #065f46; color: #6ee7b7; border: 1px solid #10b981; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: bold; }
+
+        .grid-top { display: grid; grid-template-columns: 1.2fr 1fr 1fr; gap: 16px; margin-bottom: 18px; }
+        @media (max-width: 1100px) { .grid-top { grid-template-columns: 1fr; } }
+
+        .panel { background: #0f172a; border: 1px solid #1e293b; border-radius: 14px; padding: 16px; }
+        .panel h3 { margin: 0 0 12px 0; font-size: 13px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #1e293b; padding-bottom: 8px; }
+
+        .kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 12px; }
+        .kpi { background: #1e293b; padding: 10px; border-radius: 10px; text-align: center; }
+        .kpi-v { font-size: 20px; font-weight: 800; color: #38bdf8; }
+        .kpi-l { font-size: 10px; color: #94a3b8; text-transform: uppercase; margin-top: 2px; }
+
+        .reto-bar { margin-bottom: 8px; font-size: 12px; }
+        .bar-bg { width: 100%; height: 8px; background: #1e293b; border-radius: 6px; overflow: hidden; margin-top: 4px; }
+        .bar-fill { height: 100%; background: linear-gradient(90deg, #0284c7, #38bdf8); }
+
+        .chart-bars { display: flex; align-items: flex-end; justify-content: space-around; height: 130px; padding-top: 15px; border-bottom: 1px solid #334155; }
+        .bar-col { display: flex; flex-direction: column; align-items: center; width: 60px; }
+        .bar-rect { width: 34px; border-radius: 6px 6px 0 0; transition: 0.3s; min-height: 4px; }
+        .bar-val { font-size: 12px; font-weight: bold; margin-bottom: 4px; }
+        .bar-name { font-size: 11px; color: #94a3b8; margin-top: 6px; }
+
+        .grid-bottom { display: grid; grid-template-columns: 1.5fr 1fr; gap: 16px; }
+        @media (max-width: 1100px) { .grid-bottom { grid-template-columns: 1fr; } }
+
+        table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        th { background: #1e293b; color: #94a3b8; padding: 10px 8px; text-align: left; }
+        td { padding: 10px 8px; border-bottom: 1px solid #1e293b; vertical-align: middle; }
+        tr.click-row { cursor: pointer; transition: 0.12s; }
+        tr.click-row:hover { background: #1e293b; }
+        tr.selected-row { background: #172554 !important; border-left: 3px solid #38bdf8; }
+
+        .badge { padding: 3px 8px; border-radius: 6px; font-weight: bold; font-size: 11px; }
+        .b-aprobar { background: #065f46; color: #6ee7b7; }
+        .b-desafiar { background: #78350f; color: #fcd34d; }
+        .b-rechazar { background: #7f1d1d; color: #fca5a5; }
+        .mono { font-family: monospace; font-size: 11px; color: #94a3b8; }
+
+        .avatar-soc { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 1px solid #38bdf8; transform: scaleX(-1); vertical-align: middle; margin-right: 6px; }
+        .foto-insp { width: 64px; height: 64px; border-radius: 10px; object-fit: cover; border: 2px solid #38bdf8; transform: scaleX(-1); }
+
+        .inspector-box { background: #1e293b; border-radius: 12px; padding: 14px; }
+        .insp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 12px; margin: 10px 0; background: #0f172a; padding: 10px; border-radius: 8px; }
+        .btn-soc { width: 100%; padding: 10px; border: none; border-radius: 8px; font-weight: bold; font-size: 12px; cursor: pointer; margin-top: 6px; }
+        .btn-push { background: #f59e0b; color: #0f172a; }
+        .btn-approve { background: #10b981; color: #0f172a; }
+        .btn-block { background: #ef4444; color: white; }
+
+        .mini-table td, .mini-table th { padding: 6px; font-size: 11px; }
+    </style>
+</head>
+<body>
+
+    <div id="soc-login-screen" class="login-wrapper">
+        <div class="login-logo">
+            <div style="font-size:42px;">🛡️</div>
+            <h1>MITNICK SENTINEL 360™</h1>
+            <p>Centro de Operaciones Antifraude Bancario (SOC)</p>
+        </div>
+
+        <div class="soc-field">
+            <label>Correo Corporativo del Analista:</label>
+            <input type="email" id="soc-email" class="soc-input" placeholder="usuario@dominio.co">
+        </div>
+        <div class="soc-field">
+            <label>Contraseña de Seguridad:</label>
+            <input type="password" id="soc-pass" class="soc-input" placeholder="••••••••••••">
+        </div>
+        <button class="btn-login-soc" onclick="iniciarSesionAnalista()">🔐 Iniciar Sesión</button>
+        <div id="soc-login-err" style="color:#f87171; font-size:12px; margin-top:10px; text-align:center;"></div>
+    </div>
+
+    <div id="soc-dashboard" class="container" style="display:none;">
+
+        <div class="header">
+            <div>
+                <h1 class="brand-title">🛡️ MITNICK SENTINEL 360™ — Consola Antifraude Bancaria</h1>
+                <div class="brand-sub" id="lbl-analista-activo">Sesión SOC activa</div>
+            </div>
+            <div class="header-btns">
+                <button class="btn-top" onclick="verMetricasJson()">📊 /v1/metricas (JSON)</button>
+                <button class="btn-top" onclick="reiniciarSistema()">🔄 Reiniciar Demo</button>
+                <button class="btn-top" style="border-color:#ef4444; color:#fca5a5;" onclick="cerrarSesionAnalista()">Cerrar Sesión 🚪</button>
+                <span class="pill-live">● SOC EN VIVO</span>
+            </div>
+        </div>
+
+        <div class="grid-top">
+            <div class="panel">
+                <h3>🎯 Cumplimiento del Reto & Métricas Oficiales</h3>
+                <div class="kpi-row">
+                    <div class="kpi"><div class="kpi-v" id="k-total">0</div><div class="kpi-l">Evaluadas</div></div>
+                    <div class="kpi"><div class="kpi-v" style="color:#34d399;" id="k-apr">0</div><div class="kpi-l">Aprobadas</div></div>
+                    <div class="kpi"><div class="kpi-v" style="color:#fbbf24;" id="k-des">0</div><div class="kpi-l">Desafiadas</div></div>
+                    <div class="kpi"><div class="kpi-v" style="color:#f87171;" id="k-rec">0</div><div class="kpi-l">Bloqueadas</div></div>
+                </div>
+
+                <div class="reto-bar">
+                    <div style="display:flex; justify-content:space-between;"><span>Contención Efectiva de Fraude</span><strong id="pct-contencion">100%</strong></div>
+                    <div class="bar-bg"><div class="bar-fill" id="bar-contencion" style="width:100%;"></div></div>
+                </div>
+                <div class="reto-bar">
+                    <div style="display:flex; justify-content:space-between;"><span>Cumplimiento SLA Latencia (&lt; 5 ms)</span><strong>99.8% (1.8 ms)</strong></div>
+                    <div class="bar-bg"><div class="bar-fill" style="width:99.8%;"></div></div>
+                </div>
+                <div class="reto-bar">
+                    <div style="display:flex; justify-content:space-between;"><span>Integridad Criptográfica SHA-256 + HMAC</span><strong>100% Verificado</strong></div>
+                    <div class="bar-bg"><div class="bar-fill" style="width:100%;"></div></div>
+                </div>
+            </div>
+
+            <div class="panel">
+                <h3>📈 Gráfica de Decisiones en Tiempo Real</h3>
+                <div class="chart-bars">
+                    <div class="bar-col">
+                        <div class="bar-val" id="g-val-apr" style="color:#34d399;">0%</div>
+                        <div class="bar-rect" id="g-bar-apr" style="height:10px; background:#10b981;"></div>
+                        <div class="bar-name">Aprobadas</div>
+                    </div>
+                    <div class="bar-col">
+                        <div class="bar-val" id="g-val-des" style="color:#fbbf24;">0%</div>
+                        <div class="bar-rect" id="g-bar-des" style="height:10px; background:#f59e0b;"></div>
+                        <div class="bar-name">Desafiadas</div>
+                    </div>
+                    <div class="bar-col">
+                        <div class="bar-val" id="g-val-rec" style="color:#f87171;">0%</div>
+                        <div class="bar-rect" id="g-bar-rec" style="height:10px; background:#ef4444;"></div>
+                        <div class="bar-name">Bloqueadas</div>
+                    </div>
+                </div>
+                <div style="margin-top:12px; font-size:11px; color:#94a3b8; text-align:center;">
+                    Tope Operación: <b>$2.000.000</b> | Tope Diario: <b>$5.000.000</b>
+                </div>
+            </div>
+
+            <div class="panel">
+                <h3>🧬 Base de Datos de Rostros, IMEI y Topes</h3>
+                <table class="mini-table">
+                    <thead>
+                        <tr>
+                            <th>Titular / Rostro BD</th>
+                            <th>IMEI Reto</th>
+                            <th>Tope Diario</th>
+                            <th>Alertas</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-usuarios-soc"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="grid-bottom">
+            <div class="panel">
+                <h3>📡 Monitor de Transacciones (Haz clic en una fila para inspeccionar y actuar)</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>TX / Hora</th>
+                            <th>Cliente</th>
+                            <th>Destino / Monto</th>
+                            <th>Riesgo</th>
+                            <th>Decisión</th>
+                            <th>Hash SHA-256</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-tx-soc">
+                        <tr><td colspan="6" style="text-align:center; color:#64748b;">Esperando actividad del usuario...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="panel">
+                <h3>🔎 Expediente Forense & Acción del Analista</h3>
+                <div id="expediente-detalle" class="inspector-box">
+                    <div style="color:#94a3b8; font-size:13px; text-align:center; padding:30px 10px;">
+                        Selecciona cualquier operación de la tabla izquierda para ver su huella HMAC-SHA256, rostro registrado en BD y enviar notificaciones al celular del cliente.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script>
+    const API = "http://127.0.0.1:8081";
+    let analistaActual = null;
+    let historialGlobal = [];
+    let usuariosGlobal = {};
+    let txSeleccionada = null;
+
+    async function iniciarSesionAnalista() {
+        const correo = document.getElementById('soc-email').value.trim();
+        const clave = document.getElementById('soc-pass').value.trim();
+
+        const resp = await fetch(`${API}/login_analista`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ correo, clave })
+        });
+        const data = await resp.json();
+
+        if (!data.ok) {
+            document.getElementById('soc-login-err').innerText = data.mensaje;
+            return;
+        }
+
+        analistaActual = data.analista;
+        document.getElementById('lbl-analista-activo').innerText = `Analista: ${analistaActual.nombre} (${analistaActual.rol})`;
+        document.getElementById('soc-login-screen').style.display = 'none';
+        document.getElementById('soc-dashboard').style.display = 'block';
+        actualizarConsola();
+    }
+
+    function cerrarSesionAnalista() {
+        analistaActual = null;
+        document.getElementById('soc-dashboard').style.display = 'none';
+        document.getElementById('soc-login-screen').style.display = 'block';
+    }
+
+    function seleccionarTx(tx) {
+        txSeleccionada = tx;
+        renderizarExpediente();
+        renderizarTablaTx();
+    }
+
+    function renderizarExpediente() {
+        const box = document.getElementById('expediente-detalle');
+        if (!txSeleccionada) return;
+        const tx = txSeleccionada;
+        const u = usuariosGlobal[tx.id_cliente] || {};
+        const fotoHtml = (u.rostro_enrolado && u.foto_rostro_b64)
+            ? `<img src="${u.foto_rostro_b64}" class="foto-insp" alt="Rostro BD">`
+            : `<div style="width:64px; height:64px; background:#0f172a; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:10px; color:#94a3b8; text-align:center;">Sin foto BD</div>`;
+
+        box.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    ${fotoHtml}
+                    <div>
+                        <strong style="font-size:15px; color:#38bdf8;">Operación ${tx.id_tx}</strong><br>
+                        <span style="font-size:12px;">${tx.nombre_cliente} (${tx.id_cliente})</span><br>
+                        <span class="mono" style="font-size:10px;">BD Rostro: ${u.rostro_enrolado ? 'Enrolado ✅' : 'Pendiente ⚠️'}</span>
+                    </div>
+                </div>
+                <span class="badge b-${tx.decision}">${tx.decision.toUpperCase()} (${Math.round(tx.puntaje*100)}%)</span>
+            </div>
+            <div class="insp-grid">
+                <div><strong>Monto:</strong> $${Number(tx.monto).toLocaleString('es-CO')}</div>
+                <div><strong>Destino:</strong> ${tx.destino}</div>
+                <div><strong>IMEI Recibido:</strong> <span class="mono">${tx.imei_tx}</span></div>
+                <div><strong>IMEI Enrolado:</strong> <span class="mono">${tx.imei_oficial}</span></div>
+                <div><strong>HMAC TX:</strong> <span class="mono">${tx.hmac_tx}</span></div>
+                <div><strong>Sello Destino:</strong> <span class="mono">${tx.sello_destino}</span></div>
+            </div>
+            <div style="font-size:12px; background:#0f172a; padding:10px; border-radius:8px; margin-bottom:10px;">
+                <strong style="color:#fbbf24;">Diagnóstico Técnico:</strong><br>
+                ${tx.razones.join('<br>')}
+            </div>
+            <div style="font-size:11px; color:#94a3b8; margin-bottom:6px;"><strong>Acciones Directas hacia la App del Usuario:</strong></div>
+            <button class="btn-soc btn-push" onclick="enviarAccionAnalista('pedir_facial')">🔔 Enviar Notificación Push: Cotejar Rostro con Cámara</button>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+                <button class="btn-soc btn-approve" onclick="enviarAccionAnalista('aprobar_manual')">✅ Aprobar Manual</button>
+                <button class="btn-soc btn-block" onclick="enviarAccionAnalista('bloquear_manual')">🚫 Bloquear Fraude</button>
+            </div>
+        `;
+    }
+
+    async function enviarAccionAnalista(accion) {
+        if (!txSeleccionada || !analistaActual) return;
+        const resp = await fetch(`${API}/accion_analista`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                accion: accion,
+                analista: analistaActual.nombre,
+                id_tx: txSeleccionada.id_tx,
+                id_cliente: txSeleccionada.id_cliente,
+                monto: txSeleccionada.monto,
+                destino: txSeleccionada.destino,
+                imei_tx: txSeleccionada.imei_tx,
+                motivo: txSeleccionada.razones[0]
+            })
+        });
+        const data = await resp.json();
+        if (data.evento) {
+            txSeleccionada = data.evento;
+            renderizarExpediente();
+        }
+        actualizarConsola();
+    }
+
+    function renderizarTablaTx() {
+        const tbody = document.getElementById('tabla-tx-soc');
+        if (historialGlobal.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:#64748b;">Esperando actividad del usuario...</td></tr>';
+            return;
+        }
+        tbody.innerHTML = '';
+        historialGlobal.slice().reverse().forEach(tx => {
+            const tr = document.createElement('tr');
+            tr.className = 'click-row' + (txSeleccionada && txSeleccionada.id_tx === tx.id_tx ? ' selected-row' : '');
+            tr.onclick = () => seleccionarTx(tx);
+            tr.innerHTML = `
+                <td><b>${tx.id_tx}</b><br><span class="mono">${tx.hora}</span></td>
+                <td>${tx.nombre_cliente}<br><span class="mono">${tx.id_cliente}</span></td>
+                <td>${tx.destino}<br><b>$${Number(tx.monto).toLocaleString('es-CO')}</b></td>
+                <td><b>${Math.round(tx.puntaje * 100)}%</b></td>
+                <td><span class="badge b-${tx.decision}">${tx.decision.toUpperCase()}</span></td>
+                <td class="mono">${tx.hash_actual.substring(0, 12)}...</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    async function actualizarConsola() {
+        if (!analistaActual) return;
+        try {
+            const resp = await fetch(`${API}/estado_completo`);
+            const data = await resp.json();
+            usuariosGlobal = data.usuarios || {};
+            historialGlobal = data.historial || [];
+            const errores = data.errores_usuarios || {};
+
+            if (!txSeleccionada && historialGlobal.length > 0) {
+                txSeleccionada = historialGlobal[historialGlobal.length - 1];
+                renderizarExpediente();
+            }
+
+            const ops = historialGlobal.filter(h => h.tipo_op !== 'enrolamiento_boveda');
+            const total = ops.length;
+            const apr = ops.filter(h => h.decision === 'aprobar').length;
+            const des = ops.filter(h => h.decision === 'desafiar').length;
+            const rec = ops.filter(h => h.decision === 'rechazar').length;
+
+            document.getElementById('k-total').innerText = total;
+            document.getElementById('k-apr').innerText = apr;
+            document.getElementById('k-des').innerText = des;
+            document.getElementById('k-rec').innerText = rec;
+
+            const pctApr = total ? Math.round((apr / total) * 100) : 0;
+            const pctDes = total ? Math.round((des / total) * 100) : 0;
+            const pctRec = total ? Math.round((rec / total) * 100) : 0;
+
+            document.getElementById('g-val-apr').innerText = pctApr + "%";
+            document.getElementById('g-bar-apr').style.height = Math.max(8, pctApr) + "px";
+            document.getElementById('g-val-des').innerText = pctDes + "%";
+            document.getElementById('g-bar-des').style.height = Math.max(8, pctDes) + "px";
+            document.getElementById('g-val-rec').innerText = pctRec + "%";
+            document.getElementById('g-bar-rec').style.height = Math.max(8, pctRec) + "px";
+
+            const contencion = total ? Math.round(((des + rec) / total) * 100) : 100;
+            document.getElementById('pct-contencion').innerText = contencion + "%";
+            document.getElementById('bar-contencion').style.width = contencion + "%";
+
+            const tbodyU = document.getElementById('tabla-usuarios-soc');
+            tbodyU.innerHTML = '';
+            Object.values(usuariosGlobal).forEach(u => {
+                const errCount = errores[u.id_cliente] || 0;
+                const pctTope = Math.round(((u.gastado_hoy || 0) / 5000000) * 100);
+                const avatar = (u.rostro_enrolado && u.foto_rostro_b64)
+                    ? `<img src="${u.foto_rostro_b64}" class="avatar-soc">`
+                    : `👤 `;
+                tbodyU.innerHTML += `
+                    <tr>
+                        <td>${avatar}<b>${u.id_cliente}</b> · ${u.nombre}</td>
+                        <td class="mono">${u.imei_vinculado}</td>
+                        <td>${pctTope}% ($${Number(u.gastado_hoy||0).toLocaleString('es-CO')})</td>
+                        <td><span class="badge ${errCount > 0 ? 'b-rechazar' : 'b-aprobar'}">${errCount} alertas</span></td>
+                    </tr>
+                `;
+            });
+
+            renderizarTablaTx();
+        } catch (e) {}
+    }
+
+    function verMetricasJson() {
+        window.open(`${API}/v1/metricas`, '_blank');
+    }
+
+    async function reiniciarSistema() {
+        await fetch(`${API}/reiniciar_sistema`, { method: 'POST' });
+        txSeleccionada = null;
+        document.getElementById('expediente-detalle').innerHTML = '<div style="color:#94a3b8; text-align:center; padding:20px;">Sistema reiniciado.</div>';
+        actualizarConsola();
+    }
+
+    setInterval(actualizarConsola, 1500);
+</script>
+</body>
+</html>
